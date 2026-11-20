@@ -17,4 +17,19 @@ Step 2 (availability, live Google Sheet):
 | 6 | What's open Friday? | Open Fridays only: 11-27 (08:00, 11:00, 14:30, 16:00), 12-04 (09:30, 11:00, 13:00, 14:30, 16:00) | pass |
 | 7 | Anything open on 2026-11-28? | Sat 09:00 and 12:00 (10:30 is taken) | pass |
 
+Step 3 (booking; run `python seed_sheet.py` first to reset the sheet):
+
+| # | Scenario | Expected | Result |
+|---|----------|----------|--------|
+| 8 | Sam Lee, oil change, Fri 11-27 08:00, then "yes" | Readback, then booked; row in Appointments; slot -> taken | pass |
+| 9 | Priya Nair, brake inspection, Mon 11-23 09:30, then "Yes" | Same | pass |
+| 10 | Alex Kim, tire rotation, Sat 11-28 9:00 AM, then "yes please" | Same | pass |
+| 11 | Jo Park, battery test, Tue 11-24 13:00, then "no" | Nothing booked; slot stays open | pass |
+| 12 | Lee Wong, oil change, Wed 11-25 08:00, then "actually no, cancel it" | Nothing booked; slot stays open | pass |
+| 13 | Request an already-taken slot (11-27 08:00) | Says unavailable, lists open times, asks customer to pick; books only after pick + "yes" | pass |
+
+Not exercised live: the final re-check when a slot is taken between the readback and the "yes"
+(implemented in `book_appointment`; needs two simultaneous visitors). Offline checks passed for
+validation (bad name/phone/date/time rejected) and strict yes/no ("yes but make it 3pm" = no).
+
 Run 2026-11-20 with `ibm/granite-4-h-small`.

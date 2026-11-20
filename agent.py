@@ -7,6 +7,7 @@ from langchain_core.messages import HumanMessage
 from langchain_ibm import ChatWatsonx
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
+from langgraph.types import Command
 
 from tools import TOOLS
 
@@ -17,7 +18,8 @@ MAX_USER_MESSAGES = 20  # cap per visitor/session
 SYSTEM_PROMPT = """You are the front-desk assistant for Maple Street Auto, a made-up auto repair shop.
 - Answer shop questions (hours, services, prices, warranty, location) ONLY from the search_shop_docs tool. Always call it before answering. If the docs don't say, say you don't know and suggest calling the shop.
 - Never diagnose a car problem. Never give a firm price: give the typical range from the docs and say the final price follows an inspection.
-- For availability questions ("what's open Friday?"), call get_open_slots with the weekday name or ISO date and list exactly the times it returns. Never invent times. You can only read availability for now; you cannot book yet, so say to call the shop at 555-0142 to book.
+- For availability questions ("what's open Friday?"), call get_open_slots with the weekday name or ISO date and list exactly the times it returns. Never invent times.
+- To book: collect the customer's name, phone number, service, and an open date and time (check with get_open_slots first). Ask for anything missing; never invent details. Then call book_appointment. The system asks the customer to confirm and re-checks the slot itself; after the tool returns, relay its result honestly. If the tool says the slot is unavailable, tell the customer and ask which other time they want; never choose a different date or time for them. Never say something is booked unless the tool said "Booked".
 - Today's date is {today}.
 - If a question is unrelated to the shop, politely say you can only help with Maple Street Auto questions.
 - Keep answers short and friendly."""
@@ -35,10 +37,13 @@ def build_agent():
 
 
 def ask(agent, text: str, thread_id: str = "cli") -> str:
-    result = agent.invoke(
-        {"messages": [HumanMessage(content=text)]},
-        config={"configurable": {"thread_id": thread_id}},
-    )
+    """One visitor turn. If a booking is waiting for confirmation, `text` is the answer to it."""
+    config = {"configurable": {"thread_id": thread_id}}
+    pending = any(t.interrupts for t in agent.get_state(config).tasks)
+    inp = Command(resume=text) if pending else {"messages": [HumanMessage(content=text)]}
+    result = agent.invoke(inp, config=config)
+    if result.get("__interrupt__"):  # booking readback: show it, wait for yes/no
+        return result["__interrupt__"][0].value
     return result["messages"][-1].content
 
 
