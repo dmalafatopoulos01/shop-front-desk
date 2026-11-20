@@ -3,3 +3,4 @@ langchain-core
 langchain-ibm
 chromadb
 python-dotenv
+gspread
