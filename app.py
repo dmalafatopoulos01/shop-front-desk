@@ -33,28 +33,61 @@ def _get_agent():
     return _agent
 
 
-def respond(message: str, history: list, request: gr.Request):
+def _new_thread_id() -> str:
+    return uuid.uuid4().hex
+
+
+def respond(message: str, history: list, thread_id: str):
     used = sum(1 for m in history if m["role"] == "user")
     if used >= MAX_USER_MESSAGES:
         return "You've reached the message limit for this chat. Please call the shop at 555-0142."
-    thread_id = getattr(request, "session_hash", None) or str(uuid.uuid4())
     try:
         return ask(_get_agent(), message, thread_id)
     except Exception:
         return "Sorry, something went wrong on our end. Please try again or call the shop at 555-0142."
 
 
-demo = gr.ChatInterface(
-    respond,
-    title="Maple Street Auto: Front Desk",
-    description=(
+def chat(message: str, history: list, thread_id: str):
+    """Append one visitor turn to the chat. Returns (cleared textbox, updated history)."""
+    message = (message or "").strip()
+    if not message:
+        return "", history
+    reply = respond(message, history, thread_id)
+    return "", history + [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": reply},
+    ]
+
+
+def _example_handler(text: str):
+    def handler(history: list, thread_id: str):
+        return chat(text, history, thread_id)
+
+    return handler
+
+
+# Built from Blocks rather than gr.ChatInterface on purpose: ChatInterface always adds
+# Retry/Undo buttons, which would replay or rewind a turn while a booking is waiting for
+# the visitor's "yes" and desync the agent's saved state. Each chat has its own thread id,
+# and the Clear button starts a fresh one so a cleared screen never leaves a hidden
+# confirmation pending on the server.
+with gr.Blocks(title="Maple Street Auto: Front Desk") as demo:
+    gr.Markdown("# Maple Street Auto: Front Desk")
+    gr.Markdown(
         "Ask about hours, services, typical prices and warranty, check open times, "
         "or book an appointment. Demo only: Maple Street Auto and its schedule are made up. "
         f"Chats are limited to {MAX_USER_MESSAGES} messages."
-    ),
-    examples=EXAMPLES,
-    cache_examples=False,
-)
+    )
+    thread = gr.State(_new_thread_id)
+    chatbot = gr.Chatbot(height=460, buttons=["copy_all"], show_label=False)
+    box = gr.Textbox(placeholder="Type a message...", show_label=False, autofocus=True)
+    with gr.Row():
+        for example in EXAMPLES:
+            gr.Button(example, size="sm").click(
+                _example_handler(example), [chatbot, thread], [box, chatbot]
+            )
+    box.submit(chat, [box, chatbot, thread], [box, chatbot])
+    chatbot.clear(_new_thread_id, None, [thread])
 
 if __name__ == "__main__":
     port = os.environ.get("PORT")  # set by hosts like Render; unset locally
