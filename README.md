@@ -57,7 +57,14 @@ Or chat in the terminal with `python agent.py`.
 
 ## Tests
 
-Manual test cases and results are in [tests.md](tests.md): shop questions, bookings, "no" at confirm, an off-topic question, and a taken slot.
+**Automated** (offline, no keys or sheet needed): booking validation (name, phone, date, time, service), time normalization, the strict "explicit yes" gate, and open-slot filtering.
+
+```powershell
+.\.venv\Scripts\python -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python -m pytest tests -q
+```
+
+**Manual** end-to-end cases and results (shop questions, bookings, "no" at confirm, an off-topic question, a taken slot) are in [tests.md](tests.md). They need the model and the sheet.
 
 ## Hosting
 
