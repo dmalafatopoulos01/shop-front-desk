@@ -1,18 +1,10 @@
----
-title: Maple Street Auto Front Desk
-emoji: 🔧
-colorFrom: gray
-colorTo: red
-sdk: gradio
-sdk_version: 6.32.0
-python_version: "3.12"
-app_file: app.py
-pinned: false
----
-
 # Shop Front Desk
 
 A tool-using AI agent for a **made-up** auto shop, Maple Street Auto. Everything (shop, prices, time slots, customers) is fake demo data.
+
+![Demo: shop question, open times, then a confirmed booking](docs/demo.gif)
+
+*Demo, recorded locally: a shop question, "What's open Friday?" from the live sheet, then a booking that is read back and confirmed with "yes".*
 
 It can:
 
@@ -67,8 +59,23 @@ Or chat in the terminal with `python agent.py`.
 
 Manual test cases and results are in [tests.md](tests.md): shop questions, bookings, "no" at confirm, an off-topic question, and a taken slot.
 
-## Deploy to Hugging Face Spaces
+## Hosting
 
-This README's header is the Space config. Add these as Space **Secrets** (not files): the five variables above, using `GOOGLE_SERVICE_ACCOUNT_JSON` for the key. The Chroma index is built automatically on first start.
+This repo is **not currently deployed**. It runs locally (above). At the time of writing, Hugging Face Spaces required a paid PRO plan for Gradio apps, so hosting was skipped.
 
-Because the demo writes to a shared sheet, anyone can book fake slots. Run `python seed_sheet.py` to reset it.
+The app is ready to host anywhere that runs Python:
+
+- Set the variables in the table above as the host's secrets. Use `GOOGLE_SERVICE_ACCOUNT_JSON` (the key's JSON text) instead of a key file, and never commit keys.
+- Start command: `python app.py`. The Chroma index is built automatically on first start.
+- For a Hugging Face Space, add this block at the very top of this README:
+
+  ```
+  ---
+  title: Maple Street Auto Front Desk
+  sdk: gradio
+  sdk_version: 6.32.0
+  app_file: app.py
+  ---
+  ```
+
+If hosted publicly, keep in mind that anyone could book fake slots on the shared sheet (reset it with `python seed_sheet.py`) and use your model quota. The 20-message cap is per chat session, not per person.
