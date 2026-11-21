@@ -96,7 +96,7 @@ It also runs locally (above). At the time of writing, Hugging Face Spaces requir
 
 Free-tier behavior: the service sleeps after 15 minutes without traffic and takes up to about a minute to wake, so the first chat after a nap is slow. The document index and embedding model are built at deploy time and kept in the project folder, so waking does not re-download them.
 
-If you ever delete and recreate the GitHub repo, Render stays bound to the old one: pushes stop triggering deploys. Re-point the service (Settings → Build → Source), run **Manual sync** on the Blueprint, then push a commit and check that a deploy starts on its own. "Deploy latest commit" in the Render dashboard always works as a fallback.
+**Deploys are manual in this setup.** Pushes to GitHub do not trigger a Render deploy: auto-deploy stopped working after the GitHub repo was deleted and recreated, and re-pointing the service's Source (Settings → Build) plus running **Manual sync** on the Blueprint did not bring it back. After pushing, deploy by hand: Render dashboard → **Manual Deploy → Deploy latest commit**. That always works and builds from the current repo.
 
 ### Any other host
 
