@@ -4,3 +4,4 @@ langchain-ibm
 chromadb
 python-dotenv
 gspread
+gradio

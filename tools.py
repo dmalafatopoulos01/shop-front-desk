@@ -35,9 +35,16 @@ def search_shop_docs(query: str) -> str:
 
 
 def _spreadsheet():
+    import json
+
     import gspread
 
-    gc = gspread.service_account(filename=os.environ["GOOGLE_SERVICE_ACCOUNT_FILE"])
+    # Hosted (HF Spaces): the key is a secret holding the JSON text. Local: a gitignored file.
+    raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if raw:
+        gc = gspread.service_account_from_dict(json.loads(raw))
+    else:
+        gc = gspread.service_account(filename=os.environ["GOOGLE_SERVICE_ACCOUNT_FILE"])
     return gc.open_by_key(os.environ["SHEET_ID"])
 
 
