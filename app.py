@@ -7,6 +7,7 @@ import gradio as gr
 
 from agent import MAX_USER_MESSAGES, build_agent, ask
 from ingest import CHROMA_DIR, COLLECTION, ingest
+from ratelimit import client_ip, limiter_from_env, retry_message
 
 EXAMPLES = [
     "Do you do brake work?",
@@ -15,6 +16,7 @@ EXAMPLES = [
 ]
 
 _agent = None
+limiter = limiter_from_env()  # per-IP: 10/min and 60/hour by default (RATE_LIMIT_PER_MINUTE/HOUR)
 
 
 def _ensure_index():
@@ -47,11 +49,18 @@ def respond(message: str, history: list, thread_id: str):
         return "Sorry, something went wrong on our end. Please try again or call the shop at 555-0142."
 
 
-def chat(message: str, history: list, thread_id: str):
-    """Append one visitor turn to the chat. Returns (cleared textbox, updated history)."""
+def chat(message: str, history: list, thread_id: str, request: gr.Request = None):
+    """Append one visitor turn to the chat. Returns (textbox value, updated history)."""
     message = (message or "").strip()
     if not message:
         return "", history
+
+    allowed, retry_after = limiter.check(client_ip(request))
+    if not allowed:
+        # No model call. Only a notice is added (the visitor's message is not, so it doesn't
+        # use up their chat cap), and their text stays in the box so they can resend it.
+        return message, history + [{"role": "assistant", "content": retry_message(retry_after)}]
+
     reply = respond(message, history, thread_id)
     return "", history + [
         {"role": "user", "content": message},
@@ -60,8 +69,8 @@ def chat(message: str, history: list, thread_id: str):
 
 
 def _example_handler(text: str):
-    def handler(history: list, thread_id: str):
-        return chat(text, history, thread_id)
+    def handler(history: list, thread_id: str, request: gr.Request = None):
+        return chat(text, history, thread_id, request)
 
     return handler
 

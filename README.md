@@ -48,6 +48,7 @@ Or chat in the terminal with `python agent.py`.
 | `GOOGLE_SERVICE_ACCOUNT_FILE` | path to a service account JSON key (local) |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | the key's JSON text (hosted, as a secret; wins over the file) |
 | `SHEET_ID` | ID of the Google Sheet |
+| `RATE_LIMIT_PER_MINUTE`, `RATE_LIMIT_PER_HOUR` | optional per-IP message limits (defaults 10 and 60) |
 
 ### Google Sheet setup
 
@@ -55,9 +56,16 @@ Or chat in the terminal with `python agent.py`.
 2. Create a sheet in your own Drive (service accounts can't own files) and share it with the service account's email as **Editor**.
 3. Put the ID in `SHEET_ID`, then run `python seed_sheet.py`. It loads `data/schedule_seed.csv` into a `Schedule` tab (`Date, Day, Time, Status`) and creates an `Appointments` tab. Run it again any time to reset the demo.
 
+## Rate limiting
+
+Each client IP is limited to **10 messages per minute and 60 per hour** (change with `RATE_LIMIT_PER_MINUTE` / `RATE_LIMIT_PER_HOUR`). A limited visitor gets a "please wait N seconds" notice, the model is not called, and their typed message stays in the box so they can resend it. Retrying while blocked does not extend the block. This sits on top of the 20-message cap per chat.
+
+- **Client IP:** taken from `CF-Connecting-IP` (set by Cloudflare, which fronts Render, so a client can't forge it), then the last `X-Forwarded-For` entry, then the socket address. Forged `X-Forwarded-For` values do not help a client dodge the limit.
+- **Limits of this design:** counts are in memory, so they reset when the service restarts or wakes from sleep, and they are per process (fine for one instance, not shared across several). Visitors behind one shared IP (an office, a school) share one allowance.
+
 ## Tests
 
-**Automated** (offline, no keys or sheet needed): booking validation (name, phone, date, time, service), time normalization, the strict "explicit yes" gate, and open-slot filtering.
+**Automated** (offline, no keys or sheet needed): booking validation (name, phone, date, time, service), time normalization, the strict "explicit yes" gate, open-slot filtering, and the per-IP rate limiter (windows, retry timing, client-IP lookup, spoofing, and how the app uses it).
 
 ```powershell
 .\.venv\Scripts\python -m pip install -r requirements-dev.txt

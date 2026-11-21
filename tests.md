@@ -42,4 +42,12 @@ Grounding (no invented services; `python eval_grounding.py 3`, 9 prompts x 3 run
 
 Before the fix 21 of 27 answers had a problem (checker over-counted one case); after: 0 of 27.
 
+Rate limit (per IP; offline tests plus a live run with `RATE_LIMIT_PER_MINUTE=3`):
+
+| # | Scenario | Expected | Result |
+|---|----------|----------|--------|
+| 17 | 5 rapid requests, limit 3/min | 1-3 answered; 4-5 get "wait ~N seconds"; model not called; text kept in box | pass |
+| 18 | Retry while blocked | Wait time keeps shrinking (52s then 50s); block not extended | pass |
+| 19 | Forged `X-Forwarded-For` with the same `CF-Connecting-IP` | Still limited | pass (offline test) |
+
 Run 2026-11-20 with `ibm/granite-4-h-small`.
