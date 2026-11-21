@@ -1,7 +1,14 @@
 """Load docs/*.md into a local Chroma collection (default local embeddings, no key)."""
+import os
 from pathlib import Path
 
 import chromadb
+from chromadb.utils.embedding_functions import ONNXMiniLM_L6_V2
+
+# Hosting: keep the embedding model inside the project so a build-time download survives
+# sleep/wake (the home directory cache may not). Unset locally, Chroma's default is used.
+if os.environ.get("CHROMA_MODEL_DIR"):
+    ONNXMiniLM_L6_V2.DOWNLOAD_PATH = Path(os.environ["CHROMA_MODEL_DIR"]).resolve() / "all-MiniLM-L6-v2"
 
 ROOT = Path(__file__).parent
 DOCS_DIR = ROOT / "docs"

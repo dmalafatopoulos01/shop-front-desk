@@ -1,4 +1,5 @@
 """Gradio UI for the Maple Street Auto front-desk agent (made-up shop, fake data)."""
+import os
 import uuid
 
 import chromadb
@@ -56,4 +57,8 @@ demo = gr.ChatInterface(
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    port = os.environ.get("PORT")  # set by hosts like Render; unset locally
+    if port:
+        demo.launch(server_name="0.0.0.0", server_port=int(port))
+    else:
+        demo.launch()

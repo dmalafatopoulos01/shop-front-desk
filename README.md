@@ -61,9 +61,19 @@ Manual test cases and results are in [tests.md](tests.md): shop questions, booki
 
 ## Hosting
 
-This repo is **not currently deployed**. It runs locally (above). At the time of writing, Hugging Face Spaces required a paid PRO plan for Gradio apps, so hosting was skipped.
+This repo is **not currently deployed**. It runs locally (above). At the time of writing, Hugging Face Spaces required a paid PRO plan for Gradio apps, so it is set up for **Render's free web service** instead (`render.yaml`).
 
-The app is ready to host anywhere that runs Python:
+### Deploy on Render (free)
+
+1. Push this repo to GitHub (private is fine).
+2. In Render: **New → Blueprint**, pick the repo. Render reads `render.yaml` (build: install + `python ingest.py`; start: `python app.py`).
+3. When prompted, enter the five secrets: `WATSONX_APIKEY`, `WATSONX_URL`, `WATSONX_PROJECT_ID`, `SHEET_ID`, and `GOOGLE_SERVICE_ACCOUNT_JSON` (paste the whole key file's text).
+
+Free-tier behavior: the service sleeps after 15 minutes without traffic and takes up to about a minute to wake, so the first chat after a nap is slow. The document index and embedding model are built at deploy time and kept in the project folder, so waking does not re-download them.
+
+### Any other host
+
+The app runs anywhere that runs Python:
 
 - Set the variables in the table above as the host's secrets. Use `GOOGLE_SERVICE_ACCOUNT_JSON` (the key's JSON text) instead of a key file, and never commit keys.
 - Start command: `python app.py`. The Chroma index is built automatically on first start.

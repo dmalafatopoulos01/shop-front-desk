@@ -1,0 +1,27 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Secrets marked sync: false are entered in the Render dashboard, never committed.
+services:
+  - type: web
+    name: shop-front-desk
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python ingest.py
+    startCommand: python app.py
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: CHROMA_MODEL_DIR
+        value: .model_cache
+      - key: WATSONX_MODEL_ID
+        value: ibm/granite-4-h-small
+      - key: WATSONX_URL
+        sync: false
+      - key: WATSONX_PROJECT_ID
+        sync: false
+      - key: WATSONX_APIKEY
+        sync: false
+      - key: SHEET_ID
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
