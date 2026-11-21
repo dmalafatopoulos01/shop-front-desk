@@ -61,7 +61,9 @@ Manual test cases and results are in [tests.md](tests.md): shop questions, booki
 
 ## Hosting
 
-This repo is **not currently deployed**. It runs locally (above). At the time of writing, Hugging Face Spaces required a paid PRO plan for Gradio apps, so it is set up for **Render's free web service** instead (`render.yaml`).
+**Live demo:** https://shop-front-desk.onrender.com (Render free web service; fake data, may take up to a minute to wake after a quiet period).
+
+It also runs locally (above). At the time of writing, Hugging Face Spaces required a paid PRO plan for Gradio apps, so it is hosted on **Render's free web service** instead (`render.yaml`).
 
 ### Deploy on Render (free)
 
