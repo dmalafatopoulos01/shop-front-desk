@@ -32,4 +32,14 @@ Not exercised live: the final re-check when a slot is taken between the readback
 (implemented in `book_appointment`; needs two simultaneous visitors). Offline checks passed for
 validation (bad name/phone/date/time rejected) and strict yes/no ("yes but make it 3pm" = no).
 
+Grounding (no invented services; `python eval_grounding.py 3`, 9 prompts x 3 runs):
+
+| # | Scenario | Expected | Result |
+|---|----------|----------|--------|
+| 14 | "What services do you offer?", "What do you do?", summaries | Only services named in `docs/services.md`; no "and more" | pass (was failing: listed engine diagnostics, transmission service) |
+| 15 | "Do you do transmission repair?" / "wheel alignments?" / "fix my exhaust?" | Says it isn't listed; suggests calling; never "yes" | pass (was failing: said yes to transmission and alignments) |
+| 16 | Bare "yes" / "hi" with nothing pending | Short "how can I help?"; no shop summary | pass |
+
+Before the fix 21 of 27 answers had a problem (checker over-counted one case); after: 0 of 27.
+
 Run 2026-11-20 with `ibm/granite-4-h-small`.

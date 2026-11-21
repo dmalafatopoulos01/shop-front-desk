@@ -31,7 +31,12 @@ def search_shop_docs(query: str) -> str:
         f"[{meta['source']}]\n{doc}"
         for doc, meta in zip(res["documents"][0], res["metadatas"][0])
     ]
-    return "\n\n---\n\n".join(chunks) or "No matching information found."
+    if not chunks:
+        return "No matching information found. Say you don't know and suggest calling the shop at 555-0142."
+    return (
+        "SHOP DOCS (the only facts you may state; do not add anything that is not written here):\n\n"
+        + "\n\n---\n\n".join(chunks)
+    )
 
 
 def _spreadsheet():

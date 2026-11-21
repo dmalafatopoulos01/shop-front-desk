@@ -64,6 +64,14 @@ Or chat in the terminal with `python agent.py`.
 .\.venv\Scripts\python -m pytest tests -q
 ```
 
+**Grounding check** (calls the real model, needs `.env`): asks open-ended and trick questions several times each and flags invented services or a "yes, we do that" for something the shop doesn't offer.
+
+```powershell
+.\.venv\Scripts\python eval_grounding.py 3
+```
+
+It is a heuristic (a fixed list of services the shop does not offer, plus a decline pattern), so a pass means no known failure was seen, not that the model never invents.
+
 **Manual** end-to-end cases and results (shop questions, bookings, "no" at confirm, an off-topic question, a taken slot) are in [tests.md](tests.md). They need the model and the sheet.
 
 ## Hosting
